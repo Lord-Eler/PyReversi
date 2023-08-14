@@ -7,14 +7,23 @@ from ai import AI
 class GUI:
     def __init__(self):
         # game prompts
-        translate = {'Yes':True,'No':False}
-        self.aiOpponent = translate[confirm(text='Play against the computer ?', title='PyReversi', buttons=['Yes','No'])]
-        if self.aiOpponent:
+        translate = {'Human / Human':(False,False),'Human / AI':(False,True),'AI / AI':(True,True)}
+        self.players = translate[confirm(text='Players ?', title='PyReversi', buttons=['Human / Human','Human / AI','AI / AI'])]
+        self.aiOpponent = self.players[1]
+        if self.aiOpponent and not self.players[0]:
             self.aiColor = choice([True,False])
             temp = {True:'White',False:'Black'}
             alert(text=f'You play {temp[not self.aiColor]}', title='PyReversi', button='OK', timeout=3000)
             self.ai = AI(self.aiColor,'mcts')
-        self.helper = translate[confirm(text='Play with the helper ?', title='PyReversi', buttons=['Yes','No'])]
+        self.noHuman = self.players[0]
+        if not self.noHuman:
+            translate = {'Yes':True,'No':False}
+            self.helper = translate[confirm(text='Play with the helper ?', title='PyReversi', buttons=['Yes','No'])]
+        else:
+            self.helper = False
+            self.aiColor = choice([True,False])
+            self.ai = AI(False,'mcts')
+            self.ai2 = AI(True,'mcts')
         # pygame init
         pygame.init()
         self.size = 700
@@ -69,11 +78,11 @@ class GUI:
 
     def previewMoves(self,moves):
         for disk in moves:
-            pygame.draw.circle(self.screen, self.DARK_GREEN, (self.size//10 + disk[1][0]*self.size//10 + self.size//20, self.size//10 + disk[1][1]*self.size//10 + self.size//20), self.size//25)
+            pygame.draw.circle(self.screen, self.DARK_GREEN, (self.size//10 + disk[1][0]*self.size//10 + self.size//20, self.size//10 + disk[1][1]*self.size//10 + self.size//20), self.size//35)
         pygame.display.flip()
     def unpreviewMoves(self,moves):
         for disk in moves:
-            pygame.draw.circle(self.screen, self.GREEN, (self.size//10 + disk[1][0]*self.size//10 + self.size//20, self.size//10 + disk[1][1]*self.size//10 + self.size//20), self.size//25)
+            pygame.draw.circle(self.screen, self.GREEN, (self.size//10 + disk[1][0]*self.size//10 + self.size//20, self.size//10 + disk[1][1]*self.size//10 + self.size//20), self.size//35)
         pygame.display.flip()
 
     def clickToCoords(self,coords):
@@ -87,16 +96,25 @@ class GUI:
         while not self.game.checkFinished():
             moves = self.game.validMoves()
             if moves == []:
+                self.updateScreen()
+                if not self.noHuman and (not self.aiOpponent or self.game.getTurn() != self.aiColor): alert(text='No moves available', title='PyReversi', button='OK', timeout=3000)
                 self.game.changeTurn()
                 self.updateScreen()
-                if not self.aiOpponent or self.game.getTurn() != self.aiColor: alert(text='No moves available', title='PyReversi', button='OK', timeout=3000)
                 continue
             diskToPlay = None
             
-            # AI player
-            if self.aiOpponent and self.game.getTurn() == self.aiColor:
+            # AI player vs Human player
+            if not self.noHuman and self.aiOpponent and self.game.getTurn() == self.aiColor:
                 diskToPlay = self.ai.chooseMove(self.game,moves)
             
+            # if both are AI players
+            elif self.noHuman:
+                if self.game.getTurn() == self.aiColor:
+                    diskToPlay = self.ai.chooseMove(self.game,moves)
+                else:
+                    diskToPlay = self.ai2.chooseMove(self.game,moves)
+                pygame.time.wait(500)
+
             # Human player
             else:
                 if self.helper: self.previewMoves(moves)
