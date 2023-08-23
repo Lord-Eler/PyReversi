@@ -34,6 +34,7 @@ class GUI:
         self.DARK_GREEN = (0,100,0)
         self.GRAY = (100,100,100)
         pygame.display.set_caption("PyReversi")
+        pygame.display.set_icon(pygame.image.load('docs/icon.png'))
         self.screen = pygame.display.set_mode(self.SCREEN_SIZE)
         self.font = pygame.font.Font('freesansbold.ttf', self.size//20)
         self.game = Board()

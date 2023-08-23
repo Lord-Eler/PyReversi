@@ -17,13 +17,14 @@ class AI():
         if self.type == 'mcts': return self.monteCarlo(game)
 
     def monteCarlo(self,game,iterations=500,exploreConstant=0.7):
-        if self.root == None: 
-            self.root = Node(None,game.copy())
-        else:
-            for child in self.root.children:
-                if child.board == game:
-                    self.root = child
-                    break
+        #if self.root == None: 
+        #    self.root = Node(None,game.copy())
+        #else:
+        #    for child in self.root.children:
+        #        if child.board == game:
+        #            self.root = child
+        #            break
+        self.root = Node(None,game.copy())
         for i in range(iterations):
             node = self.selection(self.root,exploreConstant)
             reward = self.simulation(node)
@@ -108,65 +109,3 @@ class AI():
             elif score == bestScore:
                 bestChildren.append(child)
         return choice(bestChildren)
-
-import time
-import pickle
-import matplotlib.pyplot as plt
-
-def AIGame(exploreConstant1,exploreConstant2,iterations=200):
-        date = time.time()
-        board = Board()
-        turn = choice([True,False])
-        ai1 = AI(turn,'mcts')
-        ai2 = AI(not turn,'mcts')
-        while not board.checkFinished():
-            moves = board.validMoves()
-            if moves == []:
-                board.changeTurn()
-                continue
-            diskToPlay = None
-            if board.getTurn() == turn:
-                diskToPlay = ai1.monteCarlo(board,iterations,exploreConstant1)
-            else:
-                diskToPlay = ai2.monteCarlo(board,iterations,exploreConstant2)
-            board.update(diskToPlay[0],diskToPlay[1],moves)
-            board.changeTurn()
-        
-        board.count()
-        print(time.time()-date)
-        board.print()
-        if board.count1 == board.count2:
-            return 0
-        elif board.count1 < board.count2:
-            return 2
-        else:
-            return 1
-
-if __name__ == '__main__':
-    games = 10
-    inf = 6
-    sup = 16
-    progress = 0
-    results = {k:0 for k in range(inf,sup)}
-    for a in range(inf,sup):
-        for b in range(inf,sup):
-            if a == b:
-                continue
-            exploreConstant1 = a/10
-            exploreConstant2 = b/10
-            progress += 1
-            print(str(round(100*progress/90)) + ' %')
-            for i in range(games):
-                try:
-                    result = AIGame(exploreConstant1,exploreConstant2)
-                    if result == 0:
-                        results[a] += 1/2
-                        results[b] += 1/2
-                    if result == 1:
-                        results[a] += 1
-                    elif result == 2:
-                        results[b] += 1
-                except:
-                    pass
-    with open('results.pickle','wb') as file:
-        pickle.dump(results,file)
