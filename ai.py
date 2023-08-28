@@ -89,10 +89,8 @@ class AI():
         if node == None:
             return
         turn = node.board.getTurn()
-        #convert = lambda turn:int(turn)*2-1
         while node != None:
             node.games += 1
-            #node.wins += reward*convert(node.board.getTurn() == turn)
             node.wins += reward if node.board.getTurn()==turn else 1-reward
             node = node.parent
 
